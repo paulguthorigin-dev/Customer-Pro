@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Pro Prototyp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f5f5f7; overflow: hidden; }
+        
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-box {
+            background: white; padding: 48px; border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 420px;
+        }
+        
+        /* Layout */
+        .app-layout { display: flex; height: 100vh; }
+        .sidebar { width: 280px; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .content-area { flex: 1; overflow-y: auto; padding: 2rem; background: #f5f5f7; }
+        
+        /* Navigation */
+        .nav-item { 
+            display: flex; align-items: center; padding: 14px 24px; margin: 4px 16px;
+            text-decoration: none; color: #1d1d1f; font-weight: 500; font-size: 15px;
+            border-radius: 12px; transition: all 0.2s ease; cursor: pointer;
+        }
+        .nav-item:hover { background-color: #f5f5f7; }
+        .nav-item.active { background-color: #007aff; color: white; font-weight: 600; box-shadow: 0 2px 8px rgba(0,122,255,0.3); }
+        .nav-item i { margin-right: 14px; width: 22px; text-align: center; font-size: 18px; }
+
+        /* Cards */
+        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .customer-card, .tour-card, .site-card {
+            background: white; padding: 20px; border-radius: 14px; margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; justify-content: space-between;
+            align-items: center; transition: all 0.2s ease; cursor: pointer;
+        }
+        .customer-card:hover, .tour-card:hover, .site-card:hover { 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-2px); 
+        }
+
+        /* Buttons */
+        .action-button {
+            background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+            color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600;
+            transition: all 0.2s ease; border: none; cursor: pointer; font-size: 15px;
+            box-shadow: 0 2px 8px rgba(0,122,255,0.3);
+        }
+        .action-button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
+        .secondary-button {
+            background-color: #f5f5f7; color: #1d1d1f; padding: 12px 24px;
+            border-radius: 12px; font-weight: 500; transition: all 0.2s ease;
+            border: 1px solid #d2d2d7; cursor: pointer; font-size: 15px;
+        }
+        .secondary-button:hover { background-color: #e8e8ed; }
+        .icon-button { 
+            padding: 10px; border-radius: 10px; transition: all 0.2s ease; 
+            cursor: pointer; border: none; background: transparent; 
+        }
+        .icon-button:hover { background-color: #f5f5f7; }
+
+        /* Tabs */
+        .tab-container { display: flex; border-bottom: 2px solid #e8e8ed; margin-bottom: 24px; }
+        .tab-button {
+            padding: 12px 24px; background: transparent; border: none; color: #86868b;
+            font-weight: 500; font-size: 15px; cursor: pointer; position: relative;
+            transition: color 0.2s ease; margin-right: 8px;
+        }
+        .tab-button:hover { color: #1d1d1f; }
+        .tab-button.active { color: #007aff; font-weight: 600; }
+        .tab-button.active::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+            height: 2px; background: #007aff; border-radius: 2px 2px 0 0;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Drag and Drop */
+        .drop-zone {
+            border: 2px dashed #d2d2d7; border-radius: 12px; padding: 40px;
+            text-align: center; transition: all 0.2s ease; background: #fafafa;
+        }
+        .drop-zone.dragover {
+            border-color: #007aff; background: #e0f2ff;
+            box-shadow: 0 0 0 4px rgba(0,122,255,0.1);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.4);
+            z-index: 2000; display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: white; padding: 32px; border-radius: 20px;
+            width: 90%; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        /* Forms */
+        input[type="text"], input[type="email"], input[type="tel"], 
+        input[type="date"], input[type="password"], textarea, select {
+            width: 100%; padding: 12px 16px; border: 1.5px solid #d2d2d7;
+            border-radius: 10px; font-size: 15px; transition: all 0.2s ease;
+            background: #fafafa;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none; border-color: #007aff; background: white;
+            box-shadow: 0 0 0 4px rgba(0,122,255,0.1);
+        }
+        label { display: block; margin-bottom: 6px; font-weight: 500; color: #1d1d1f; font-size: 14px; }
+
+        /* Message Box */
+        .message-box {
+            position: fixed; top: 20px; right: 20px; padding: 16px 24px;
+            border-radius: 12px; color: white; font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 3000;
+            transition: all 0.3s ease; opacity: 0; transform: translateY(-20px);
+        }
+        .message-box.show { opacity: 1; transform: translateY(0); }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block; padding: 6px 14px; border-radius: 20px;
+            font-size: 13px; font-weight: 600; text-transform: capitalize;
+        }
+        .status-planung { background-color: #fff3cd; color: #856404; }
+        .status-aktiv { background-color: #d1ecf1; color: #0c5460; }
+        .status-abgeschlossen { background-color: #d4edda; color: #155724; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* ============================================
+           SPLASH SCREEN STYLES
+           ============================================ */
+        .splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .splash-screen.fade-out {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+        
+        .splash-logo-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .splash-icon-ring {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulseRing 2s ease-in-out infinite;
+            position: relative;
+        }
+        
+        .splash-icon-ring::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.2);
+            animation: rotateRing 4s linear infinite;
+        }
+        
+        .splash-icon-ring::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255,255,255,0.15);
+            animation: rotateRing 8s linear infinite reverse;
+        }
+        
+        .splash-icon {
+            font-size: 60px;
+            color: white;
+            animation: bounceIcon 1.5s ease-in-out infinite;
+            filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
+        }
+        
+        .splash-title {
+            font-size: 52px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+            animation: slideUp 0.8s ease-out 0.2s both;
+        }
+        
+        .splash-subtitle {
+            font-size: 18px;
+            color: rgba(255,255,255,0.85);
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            animation: slideUp 0.8s ease-out 0.4s both;
+        }
+        
+        .splash-loader {
+            margin-top: 50px;
+            display: flex;
+            gap: 8px;
+            animation: slideUp 0.8s ease-out 0.6s both;
+        }
+        
+        .splash-dot {
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            animation: loadingDots 1.4s ease-in-out infinite;
+        }
+        
+        .splash-dot:nth-child(2) { animation-delay: 0.2s; }
+        .splash-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        .splash-version {
+            position: absolute;
+            bottom: 30px;
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+            font-weight: 500;
+            animation: fadeInSlow 1s ease-out 1s both;
+        }
+        
+        @keyframes pulseRing {
+            0%, 100% { transform: scale(1); background: rgba(255,255,255,0.1); }
+            50% { transform: scale(1.05); background: rgba(255,255,255,0.15); }
+        }
+        
+        @keyframes rotateRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounceIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes loadingDots {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes fadeInSlow {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* User Info Badge */
+        .user-badge {
+            display: flex; align-items: center; padding: 12px 20px; margin: 16px;
+            background: #f5f5f7; border-radius: 12px;
+        }
+        .user-badge i { margin-right: 10px; color: #007aff; }
+    </style>
+</head>
+<body>
+
+<!-- ============================================
+     SPLASH SCREEN
+     ============================================ -->
+<div id="splash-screen" class="splash-screen">
+    <div class="splash-logo-container">
+        <div class="splash-icon-ring">
+            <i class="fas fa-route splash-icon"></i>
+        </div>
+    </div>
+    <h1 class="splash-title">Customer Pro</h1>
+    <p class="splash-subtitle">Vertriebsmanagement</p>
+    <div class="splash-loader">
+        <div class="splash-dot"></div>
+        <div class="splash-dot"></div>
+        <div class="splash-dot"></div>
+    </div>
+    <div class="splash-version">Version 1.0 &bull; Invented by Paul Guth</div>
+</div>
+
+<!-- Login Screen -->
+<div id="login-screen" class="login-container">
+    <div class="login-box">
+        <div class="text-center mb-8">
+            <i class="fas fa-route text-5xl text-blue-600 mb-4"></i>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Customer Pro</h1>
+            <p class="text-gray-600">Prototyp - Vertriebsmanagement</p>
+        </div>
+        
+        <div class="space-y-4">
+            <div>
+                <label>Benutzername</label>
+                <input type="text" id="login-username" placeholder="Benutzername eingeben" 
+                       onkeypress="if(event.key==='Enter') login()">
+            </div>
+            <div>
+                <label>Passwort</label>
+                <input type="password" id="login-password" placeholder="Passwort eingeben"
+                       onkeypress="if(event.key==='Enter') login()">
+            </div>
+            <button class="action-button w-full" onclick="login()">
+                <i class="fas fa-sign-in-alt mr-2"></i>Anmelden
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Main App (initially hidden) -->
+<div class="app-layout" id="main-app" style="display: none;">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-6 text-2xl font-bold text-blue-600 flex items-center">
+            <i class="fas fa-route mr-3"></i> Customer Pro
+        </div>
+
+        <!-- User Info -->
+        <div class="user-badge">
+            <i class="fas fa-user-circle text-2xl"></i>
+            <div>
+                <div class="font-semibold text-sm" id="user-display-name">-</div>
+                <div class="text-xs text-gray-500" id="user-display-role">-</div>
+            </div>
+        </div>
+
+        <nav class="flex-grow pt-4" id="main-navigation">
+            <!-- Navigation wird dynamisch geladen -->
+        </nav>
+        
+        <div class="p-5 border-t border-gray-100">
+            <button onclick="logout()" class="secondary-button w-full flex items-center justify-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Abmelden
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+
+        <!-- Kundenansicht -->
+        <section id="customer-section" class="content-section" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-4xl font-bold text-gray-900">Kunden</h1>
+                <button class="action-button flex items-center" onclick="openCustomerModal()">
+                    <i class="fas fa-plus mr-2"></i> Neuer Kunde
+                </button>
+            </div>
+            <div id="customer-list-container" class="space-y-3"></div>
+        </section>
+
+        <!-- Kundendetailansicht -->
+        <section id="customer-detail-section" class="content-section" style="display: none;">
+            <div class="mb-6">
+                <button onclick="showContent('customer')" class="secondary-button flex items-center mb-4">
+                    <i class="fas fa-arrow-left mr-2"></i> Zurück
+                </button>
+                <div class="card mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2" id="detail-customer-name">-</h1>
+                            <p class="text-gray-600 mb-1"><i class="fas fa-hashtag text-gray-400 mr-2"></i><span id="detail-customer-number">-</span></p>
+                            <p class="text-gray-600 mb-1">
+                                <i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>
+                                <a id="detail-customer-address-link" href="#" target="_blank" class="text-blue-600 hover:underline">
+                                    <span id="detail-customer-address">-</span>
+                                </a>
+                            </p>
+                            <p class="text-gray-600 mb-1"><i class="fas fa-phone text-gray-400 mr-2"></i><span id="detail-customer-phone">-</span></p>
+                            <p class="text-gray-600"><i class="fas fa-envelope text-gray-400 mr-2"></i><span id="detail-customer-email">-</span></p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editCustomerFromDetail()" class="icon-button text-blue-600">
+                                <i class="fas fa-edit text-xl"></i>
+                            </button>
+                            <button onclick="deleteCustomerFromDetail()" class="icon-button text-red-600">
+                                <i class="fas fa-trash text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="tab-container">
+                        <button class="tab-button active" onclick="switchTab('visits')">
+                            <i class="fas fa-calendar-check mr-2"></i>Kundenbesuche
+                        </button>
+                        <button class="tab-button" onclick="switchTab('docs')">
+                            <i class="fas fa-folder-open mr-2"></i>Dokumentation
+                        </button>
+                        <button class="tab-button" onclick="switchTab('sites')">
+                            <i class="fas fa-hard-hat mr-2"></i>Baustellen
+                        </button>
+                    </div>
+
+                    <div id="tab-visits" class="tab-content active">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Besuchsprotokolle</h3>
+                            <button class="action-button text-sm" onclick="openProtocolModal()">
+                                <i class="fas fa-plus mr-1"></i> Neues Protokoll
+                            </button>
+                        </div>
+                        <div id="protocols-list" class="space-y-3"></div>
+                    </div>
+
+                    <div id="tab-docs" class="tab-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Dokumente</h3>
+                            <button class="action-button text-sm" onclick="openDocumentModal()">
+                                <i class="fas fa-plus mr-1"></i> Neues Dokument
+                            </button>
+                        </div>
+                        
+                        <!-- Drag & Drop Zone -->
+                        <div id="customer-drop-zone" class="drop-zone mb-4">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-600 font-medium">Dateien hier ablegen</p>
+                            <p class="text-sm text-gray-500">oder klicken zum Auswählen</p>
+                            <input type="file" id="customer-file-input" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp,application/pdf,image/*" multiple>
+                        </div>
+                        
+                        <div id="documents-list" class="space-y-3"></div>
+                    </div>
+
+                    <div id="tab-sites" class="tab-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Baustellen</h3>
+                            <button class="action-button text-sm" onclick="openConstructionSiteModal()">
+                                <i class="fas fa-plus mr-1"></i> Neue Baustelle
+                            </button>
+                        </div>
+                        <div id="construction-sites-list" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Baustellenverwaltung (Neues Menü) -->
+        <section id="construction-section" class="content-section" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-4xl font-bold text-gray-900">Baustellenverwaltung</h1>
+            </div>
+            <div id="all-construction-sites-container" class="space-y-3"></div>
+        </section>
+
+        <!-- Baustellen-Detailansicht -->
+        <section id="construction-detail-section" class="content-section" style="display: none;">
+            <div class="mb-6">
+                <button onclick="showContent('construction')" class="secondary-button flex items-center mb-4">
+                    <i class="fas fa-arrow-left mr-2"></i> Zurück
+                </button>
+                
+                <div class="card mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2" id="site-detail-name">-</h1>
+                            <p class="text-gray-600 mb-2">
+                                <i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>
+                                <a id="site-detail-address-link" href="#" target="_blank" class="text-blue-600 hover:underline">
+                                    <span id="site-detail-address">-</span>
+                                </a>
+                            </p>
+                            <div class="mb-2">
+                                <span id="site-detail-status-badge" class="status-badge">-</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Start: <span id="site-detail-start">-</span></p>
+                            <p class="text-sm text-gray-600">Ende: <span id="site-detail-end">-</span></p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editConstructionSiteFromDetail()" class="icon-button text-blue-600">
+                                <i class="fas fa-edit text-xl"></i>
+                            </button>
+                            <button onclick="deleteConstructionSiteFromDetail()" class="icon-button text-red-600">
+                                <i class="fas fa-trash text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Notizen -->
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Notizen</h3>
+                            <button class="action-button text-sm" onclick="openNoteModal()">
+                                <i class="fas fa-plus mr-1"></i> Neue Notiz
+                            </button>
+                        </div>
+                        <div id="construction-notes-list" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Dokumente -->
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Dokumente</h3>
+                            <button class="action-button text-sm" onclick="openSiteDocumentModal()">
+                                <i class="fas fa-plus mr-1"></i> Neues Dokument
+                            </button>
+                        </div>
+                        
+                        <!-- Drag & Drop Zone -->
+                        <div id="site-drop-zone" class="drop-zone mb-4">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                            <p class="text-sm text-gray-600 font-medium">Dateien hier ablegen</p>
+                            <input type="file" id="site-file-input" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp,application/pdf,image/*" multiple>
+                        </div>
+                        
+                        <div id="construction-documents-list" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tourenansicht -->
+        <section id="tour-section" class="content-section" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-4xl font-bold text-gray-900">Aktuelle Touren</h1>
+                <button class="action-button flex items-center" onclick="openTourModal()">
+                    <i class="fas fa-route mr-2"></i> Neue Tour
+                </button>
+            </div>
+            <div id="tour-list-container" class="space-y-4"></div>
+        </section>
+
+        <!-- Touren-Archiv -->
+        <section id="archive-section" class="content-section" style="display: none;">
+            <div class="mb-6">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Touren-Archiv</h1>
+                <p class="text-gray-600">Abgeschlossene und archivierte Touren</p>
+            </div>
+            <div id="archive-list-container" class="space-y-4"></div>
+        </section>
+        
+        <!-- Admin Ansicht -->
+        <section id="admin-section" class="content-section" style="display: none;">
+            <h1 class="text-4xl font-bold mb-6 text-gray-900">Administration</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4">Benutzerverwaltung</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold">Name</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold">Rolle</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold">Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-list-body" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4">Neuer Benutzer</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label>Benutzername</label>
+                            <input type="text" id="new-user-name">
+                        </div>
+                        <div>
+                            <label>Passwort</label>
+                            <input type="password" id="new-user-pass">
+                        </div>
+                        <div>
+                            <label>Rolle</label>
+                            <select id="new-user-role">
+                                <option value="Außendienst">Außendienst</option>
+                                <option value="Innendienst">Innendienst</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="new-user-admin" class="h-5 w-5 rounded">
+                            <label for="new-user-admin" class="ml-3 mb-0">Administrator</label>
+                        </div>
+                        <button class="action-button w-full" onclick="createUser()">Benutzer erstellen</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Innendienst Dashboard -->
+        <section id="innendienst-section" class="content-section" style="display: none;">
+            <h1 class="text-4xl font-bold mb-6 text-gray-900">Innendienst Dashboard</h1>
+            
+            <div class="mb-6">
+                <label class="block mb-2 text-lg font-semibold">Außendienst-Mitarbeiter auswählen</label>
+                <select id="innendienst-user-select" class="max-w-md" onchange="loadInnendienstData()">
+                    <option value="">Bitte wählen...</option>
+                </select>
+            </div>
+
+            <div id="innendienst-content" style="display: none;">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="card">
+                        <h3 class="text-xl font-semibold mb-4"><i class="fas fa-route text-blue-600 mr-2"></i>Aktuelle Touren</h3>
+                        <div id="innendienst-tours"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-xl font-semibold mb-4"><i class="fas fa-archive text-gray-600 mr-2"></i>Archivierte Touren</h3>
+                        <div id="innendienst-archive"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card">
+                        <h3 class="text-xl font-semibold mb-4"><i class="fas fa-users text-green-600 mr-2"></i>Kunden</h3>
+                        <div id="innendienst-customers"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-xl font-semibold mb-4"><i class="fas fa-hard-hat text-yellow-600 mr-2"></i>Baustellen</h3>
+                        <div id="innendienst-sites"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="customerModal" class="modal-overlay"></div>
+<div id="protocolModal" class="modal-overlay"></div>
+<div id="documentModal" class="modal-overlay"></div>
+<div id="constructionSiteModal" class="modal-overlay"></div>
+<div id="noteModal" class="modal-overlay"></div>
+<div id="tourModal" class="modal-overlay"></div>
+<div id="confirmModal" class="modal-overlay"></div>
+<div id="messageBox" class="message-box"></div>
+
+<script src="sales_app.js"></script>
+</body>
+</html>
