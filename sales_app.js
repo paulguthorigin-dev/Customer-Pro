@@ -1,5 +1,5 @@
 // Customer Pro Prototyp - Frontend JavaScript
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'https://customer-pro.onrender.com/api';
 
 // Globale Variablen
 let currentUser = null;
