@@ -1138,7 +1138,26 @@ def init_database():
         print("="*60 + "\n")
 
 
+# ============================================================
+# AUTOMATISCHE DATENBANK-INITIALISIERUNG BEIM START
+# ============================================================
+
+def auto_init_database():
+    """Prüft ob Tabellen existieren, wenn nicht -> erstellen"""
+    with app.app_context():
+        try:
+            # Versuche einen User abzufragen
+            User.query.first()
+            print("[DB] Datenbank existiert bereits")
+        except:
+            # Tabellen existieren nicht -> erstellen
+            print("[DB] Erstelle Datenbank...")
+            init_database()
+
+# Diese Zeile wird beim Import/Start ausgeführt
+auto_init_database()
+
+
 if __name__ == '__main__':
-    init_database()
     print("Server läuft auf: http://127.0.0.1:5001")
     app.run(debug=True, port=5001)
