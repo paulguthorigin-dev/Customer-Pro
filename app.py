@@ -10,7 +10,7 @@ import base64
 import hashlib
 import secrets
 from datetime import datetime, timedelta
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
@@ -18,7 +18,7 @@ from flask_cors import CORS
 # KONFIGURATION
 # ============================================================
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', static_url_path='')
 
 # SICHERHEIT: Secret Key aus Umgebungsvariable oder generieren
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
@@ -43,6 +43,26 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 db = SQLAlchemy(app)
+
+
+# ============================================================
+# FRONTEND ROUTES - HTML/JS AUSLIEFERN
+# ============================================================
+
+@app.route('/')
+def serve_frontend():
+    """Hauptseite ausliefern"""
+    return send_file('sales_app.html')
+
+@app.route('/sales_app.js')
+def serve_js():
+    """JavaScript ausliefern"""
+    return send_file('sales_app.js')
+
+@app.route('/favicon.ico')
+def favicon():
+    """Favicon (optional)"""
+    return '', 204
 
 
 # ============================================================
