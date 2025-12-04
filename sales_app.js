@@ -1,5 +1,11 @@
 // Customer Pro Prototyp - Frontend JavaScript
-const API_BASE_URL = 'http://localhost:5001/api';
+
+// Automatische API-URL Erkennung (lokal vs. Server)
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5001/api'
+    : window.location.origin + '/api';
+
+console.log('[CONFIG] API URL:', API_BASE_URL);
 
 // Globale Variablen
 let currentUser = null;
