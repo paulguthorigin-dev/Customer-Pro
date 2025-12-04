@@ -283,6 +283,164 @@
             background: #f5f5f7; border-radius: 12px;
         }
         .user-badge i { margin-right: 10px; color: #007aff; }
+
+        /* ============================================
+           MOBILE NAVIGATION
+           ============================================ */
+        
+        /* Mobile Header - nur auf Mobile sichtbar */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .hamburger-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background 0.2s ease;
+        }
+
+        .hamburger-btn:hover {
+            background: #f5f5f7;
+        }
+
+        .hamburger-btn i {
+            font-size: 24px;
+            color: #1d1d1f;
+        }
+
+        .mobile-header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #007aff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mobile-header-user {
+            width: 36px;
+            height: 36px;
+            background: #f5f5f7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #007aff;
+        }
+
+        /* Overlay hinter Sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Close Button in Sidebar (nur mobile) */
+        .sidebar-close-btn {
+            display: none;
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f5f5f7;
+            border-radius: 50%;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .sidebar-close-btn:hover {
+            background: #e8e8ed;
+        }
+
+        .sidebar-close-btn i {
+            font-size: 18px;
+            color: #1d1d1f;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -300px;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                z-index: 2000;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-close-btn {
+                display: flex;
+            }
+
+            .content-area {
+                margin-left: 0;
+                padding-top: 76px; /* Platz für Mobile Header */
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .app-layout {
+                flex-direction: column;
+            }
+
+            /* Kleinere Überschriften auf Mobile */
+            h1.text-4xl {
+                font-size: 1.75rem;
+            }
+
+            h1.text-3xl {
+                font-size: 1.5rem;
+            }
+
+            /* Cards etwas kompakter */
+            .card {
+                padding: 16px;
+            }
+
+            .customer-card, .tour-card, .site-card {
+                padding: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -303,7 +461,7 @@
         <div class="splash-dot"></div>
         <div class="splash-dot"></div>
     </div>
-    <div class="splash-version">Version 1.0 &bull; Invented by Paul Guth</div>
+    <div class="splash-version">Version 1.0 &bull; Powered by Innovation</div>
 </div>
 
 <!-- Login Screen -->
@@ -336,8 +494,30 @@
 <!-- Main App (initially hidden) -->
 <div class="app-layout" id="main-app" style="display: none;">
 
+    <!-- Mobile Header (nur auf Mobile sichtbar) -->
+    <div class="mobile-header">
+        <button class="hamburger-btn" onclick="toggleMobileSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="mobile-header-title">
+            <i class="fas fa-route"></i>
+            Customer Pro
+        </div>
+        <div class="mobile-header-user">
+            <i class="fas fa-user"></i>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay (für Mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="main-sidebar">
+        <!-- Close Button (nur Mobile) -->
+        <button class="sidebar-close-btn" onclick="closeMobileSidebar()">
+            <i class="fas fa-times"></i>
+        </button>
+        
         <div class="p-6 text-2xl font-bold text-blue-600 flex items-center">
             <i class="fas fa-route mr-3"></i> Customer Pro
         </div>
