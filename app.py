@@ -1054,8 +1054,16 @@ def delete_user(id):
 
 def init_database():
     with app.app_context():
-        db.drop_all()
+        # NUR Tabellen erstellen - NICHT löschen!
         db.create_all()
+        
+        # Prüfen ob bereits Benutzer existieren
+        existing_users = User.query.count()
+        if existing_users > 0:
+            print(f"[DB] {existing_users} Benutzer existieren bereits - überspringe Initialisierung")
+            return
+        
+        print("[DB] Keine Benutzer gefunden - erstelle Testdaten...")
         
         # Benutzer erstellen
         admin = User(username='admin', password='42', role='Außendienst', is_admin=True)
