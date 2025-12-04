@@ -1,5 +1,5 @@
 // Customer Pro Prototyp - Frontend JavaScript
-const API_BASE_URL = 'https://customer-pro.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 // Globale Variablen
 let currentUser = null;
@@ -17,6 +17,43 @@ let uploadedFilesSite = new Set();
 let isInnendienstViewMode = false;
 let selectedAussendienstUserId = null;
 let cachedInnendienstData = null;
+
+// ===================================================
+// MOBILE NAVIGATION
+// ===================================================
+
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('main-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (!sidebar || !overlay) return;
+    
+    if (sidebar.classList.contains('open')) {
+        closeMobileSidebar();
+    } else {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Verhindern von Scroll im Hintergrund
+    }
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('main-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (!sidebar || !overlay) return;
+    
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = ''; // Scroll wieder aktivieren
+}
+
+// Sidebar schließen wenn ein Menüpunkt geklickt wird (nur auf Mobile)
+function closeSidebarOnMobile() {
+    if (window.innerWidth <= 768) {
+        closeMobileSidebar();
+    }
+}
 
 // ===================================================
 // AUTH & SESSION
@@ -73,11 +110,15 @@ function getAuthHeaders() {
 
 async function logout() {
     try {
+        closeSidebarOnMobile(); // Sidebar schließen falls offen
         await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
             credentials: 'include'
         });
         currentUser = null;
+        localStorage.removeItem('auth_user_id');
+        localStorage.removeItem('auth_username');
+        localStorage.removeItem('auth_user');
         document.getElementById('main-app').style.display = 'none';
         document.getElementById('login-screen').style.display = 'flex';
         showMessage('Erfolgreich abgemeldet', 'success');
@@ -148,6 +189,7 @@ function buildNavigation() {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             showContent(item.dataset.section);
+            closeSidebarOnMobile(); // Sidebar auf Mobile schließen
         });
     });
 }
